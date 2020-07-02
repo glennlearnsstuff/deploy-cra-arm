@@ -15,7 +15,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
-  },21083722+glennlearnsstuff@users.noreply.github.com
+  },
   "eslintConfig": {
     "extends": "react-app"
   },
