@@ -6,53 +6,28 @@
             "type": "string"
         },
         "name": {
-            "type": "string"
-        },
-        "location": {
             "type": "string",
-            "defaultValue": "[resourceGroup().location]"
+            "defaultValue": "deploycraarmapp"
         },
         "hostingPlanName": {
-            "type": "string"
-        },
-        "serverFarmResourceGroup": {
             "type": "string",
-            "defaultValue": "[resourceGroup().name]"
-        },
-        "alwaysOn": {
-            "type": "bool"
+            "defaultValue": "deploycraarmasp"
         },
         "sku": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "Free"
         },
         "skuCode": {
-            "type": "string"
-        },
-        "workerSize": {
-            "type": "string"
-        },
-        "workerSizeId": {
-            "type": "string"
-        },
-        "numberOfWorkers": {
-            "type": "string"
-        },
-        "currentStack": {
-            "type": "string"
-        },
-        "phpVersion": {
-            "type": "string"
-        },
-        "nodeVersion": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "F1"
         }
     },
     "resources": [
         {
             "apiVersion": "2018-11-01",
             "name": "[parameters('name')]",
-            "type": "Microsoft.Web/sites",        
-            "location": "[parameters('location')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[resourceGroup().location]",
             "tags": {},
             "dependsOn": [
                 "[concat('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
@@ -63,35 +38,34 @@
                     "appSettings": [
                         {
                             "name": "WEBSITE_NODE_DEFAULT_VERSION",
-                            "value": "[parameters('nodeVersion')]"
+                            "value": "12.13.0"
                         }
                     ],
                     "metadata": [
                         {
                             "name": "CURRENT_STACK",
-                            "value": "[parameters('currentStack')]"
+                            "value": "node"
                         }
                     ],
-                    "phpVersion": "[parameters('phpVersion')]",
-                    "nodeVersion": "[parameters('nodeVersion')]",
-                    "alwaysOn": "[parameters('alwaysOn')]"
+                    "phpVersion": "OFF",
+                    "nodeVersion": "12.13.0"
                 },
-                "serverFarmId": "[concat('/subscriptions/', parameters('subscriptionId'),'/resourcegroups/', parameters('serverFarmResourceGroup'), '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
+                "serverFarmId": "[concat('/subscriptions/', parameters('subscriptionId'),'/resourcegroups/', resourceGroup().name, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
             }
         },
         {
             "apiVersion": "2018-11-01",
             "name": "[parameters('hostingPlanName')]",
             "type": "Microsoft.Web/serverfarms",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "kind": "",
             "tags": {},
             "dependsOn": [],
             "properties": {
                 "name": "[parameters('hostingPlanName')]",
-                "workerSize": "[parameters('workerSize')]",
-                "workerSizeId": "[parameters('workerSizeId')]",
-                "numberOfWorkers": "[parameters('numberOfWorkers')]"
+                "workerSize": "0",
+                "workerSizeId": "0",
+                "numberOfWorkers": "1"
             },
             "sku": {
                 "Tier": "[parameters('sku')]",
