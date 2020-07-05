@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.1",
     "parameters": {
         "siteName": {
-            "value": "deploycraarm"
+            "value": "GEN-UNIQUE"
         }    
     }
 }
