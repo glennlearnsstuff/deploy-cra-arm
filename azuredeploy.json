@@ -1,19 +1,12 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.1",
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
     "parameters": {
         "siteName": {
-           "type": "string",
-           "defaultValue": "[concat('WebApp-', uniqueString(resourceGroup().id))]",
+            "type": "string",
+            "defaultValue": "[concat('deploycraarmapp-', uniqueString(resourceGroup().id))]",
             "metadata": {
                 "description": "The name of you Web Site."
-            }
-        },
-        "location": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().location]",
-            "metadata": {
-                "description": "Location for all resources."
             }
         },
         "sku": {
@@ -35,6 +28,13 @@
             "defaultValue": "F1",
             "metadata": {
                 "description": "The pricing tier for the hosting plan."
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
             }
         },
         "workerSize": {
@@ -65,13 +65,13 @@
         }
     },
     "variables": {
-        "hostingPlanName": "[concat('hpn-', resourceGroup().name)]"
+        "hostingPlanName": "[concat(resourceGroup().name, '-asp')]"
     },
     "resources": [
         {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "2018-02-01",
-            "name": "[variables('hostingPlanName')]",
+            "name": "[variables('hostingPlanName')]",            
             "location": "[parameters('location')]",
             "sku": {
                 "name": "[parameters('sku')]",
@@ -84,13 +84,30 @@
         {
             "type": "Microsoft.Web/sites",
             "apiVersion": "2018-02-01",
-            "name": "[parameters('siteName')]",
+            "name": "[parameters('sitename')]",            
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+                "[concat('Microsoft.Web/serverfarms/', variables('hostingPlanName'))]"
             ],
             "properties": {
-                "serverFarmId": "[variables('hostingPlanName')]"
+                "name": "[parameters('sitename')]",
+                "serverFarmId": "[variables('hostingPlanName')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "WEBSITE_NODE_DEFAULT_VERSION",
+                            "value": "12.13.0"
+                        }
+                    ],
+                    "metadata": [
+                        {
+                            "name": "CURRENT_STACK",
+                            "value": "node"
+                        }
+                    ],
+                    "phpVersion": "OFF",
+                    "nodeVersion": "12.13.0"
+                }
             },
             "resources": [
                 {
