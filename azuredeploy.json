@@ -2,42 +2,96 @@
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "subscriptionId": {
-            "type": "string"
-        },
-        "name": {
+        "siteName": {
             "type": "string",
-            "defaultValue": "deploycraarmapp"
-        },
-        "hostingPlanName": {
-            "type": "string",
-            "defaultValue": "deploycraarmasp"
-        },
-        "location": {
-            "type": "string",
-            defaultValue: "East US"
+            "defaultValue": "[concat('deploycraarmapp-', uniqueString(resourceGroup().id))]",
+            "metadata": {
+                "description": "The name of you Web Site."
+            }
         },
         "sku": {
             "type": "string",
-            "defaultValue": "Free"
+            "allowedValues": [
+                "F1",
+                "D1",
+                "B1",
+                "B2",
+                "B3",
+                "S1",
+                "S2",
+                "S3",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+            ],
+            "defaultValue": "F1",
+            "metadata": {
+                "description": "The pricing tier for the hosting plan."
+            }
         },
-        "skuCode": {
+        "location": {
             "type": "string",
-            "defaultValue": "F1"
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "workerSize": {
+            "type": "string",
+            "allowedValues": [
+                "0",
+                "1",
+                "2"
+            ],
+            "defaultValue": "0",
+            "metadata": {
+                "description": "The instance size of the hosting plan (small, medium, or large)."
+            }
+        },
+        "repoURL": {
+            "type": "string",
+            "defaultValue": "https://github.com/glennlearnsstuff/deploy-cra-arm.git",
+            "metadata": {
+                "description": "The URL for the GitHub repository that contains the project to deploy."
+            }
+        },
+        "branch": {
+            "type": "string",
+            "defaultValue": "master",
+            "metadata": {
+                "description": "The branch of the GitHub repository to use."
+            }
         }
+    },
+    "variables": {
+        "hostingPlanName": "[concat(resourceGroup().name, '-asp')]"
     },
     "resources": [
         {
-            "apiVersion": "2018-11-01",
-            "name": "[parameters('name')]",
-            "type": "Microsoft.Web/sites",
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[variables('hostingPlanName')]",            
             "location": "[parameters('location')]",
-            "tags": {},
+            "sku": {
+                "name": "[parameters('sku')]",
+                "capacity": "[parameters('workerSize')]"
+            },
+            "properties": {
+                "name": "[variables('hostingPlanName')]"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-02-01",
+            "name": "[parameters('sitename')]",            
+            "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
+                "[concat('Microsoft.Web/serverfarms/', variables('hostingPlanName'))]"
             ],
             "properties": {
-                "name": "[parameters('name')]",
+                "name": "[parameters('sitename')]",
+                "serverFarmId": "[variables('hostingPlanName')]",
                 "siteConfig": {
                     "appSettings": [
                         {
@@ -53,28 +107,24 @@
                     ],
                     "phpVersion": "OFF",
                     "nodeVersion": "12.13.0"
-                },
-                "serverFarmId": "[concat('/subscriptions/', parameters('subscriptionId'),'/resourcegroups/', resourceGroup().name, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
-            }
-        },
-        {
-            "apiVersion": "2018-11-01",
-            "name": "[parameters('hostingPlanName')]",
-            "type": "Microsoft.Web/serverfarms",
-            "location": "[parameters('location')]",
-            "kind": "",
-            "tags": {},
-            "dependsOn": [],
-            "properties": {
-                "name": "[parameters('hostingPlanName')]",
-                "workerSize": "0",
-                "workerSizeId": "0",
-                "numberOfWorkers": "1"
+                }
             },
-            "sku": {
-                "Tier": "[parameters('sku')]",
-                "Name": "[parameters('skuCode')]"
-            }
-        }
+            "resources": [
+                {
+                    "type": "sourcecontrols",
+                    "apiVersion": "2018-02-01",
+                    "name": "web",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', parameters('siteName'))]"
+                    ],
+                    "properties": {
+                        "repoUrl": "[parameters('repoURL')]",
+                        "branch": "[parameters('branch')]",
+                        "isManualIntegration": true
+                    }
+                }
+            ]
+        },
     ]
 }
